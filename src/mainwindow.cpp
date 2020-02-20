@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
 		QString path = QDir::homePath() + "/.local/share/Trash/files";
 		mf::removeDir(path);
 	});
-	connect(winKillerB,&QPushButton::clicked,this,[this](){ app::startDetached("xkill"); });
+	connect(winKillerB,&QPushButton::clicked,this,[this](){ mf::startDetached("xkill", QStringList()); });
 	connect(m_pNativeEventFilter,&NativeEventFilter::activated,this,&MainWindow::slot_GlobalHotkey);
 	m_pNativeEventFilter->setShortcut();
 
@@ -185,7 +185,7 @@ void MainWindow::reloadBookmarks()
 					connect(dirAction,&QAction::triggered,this,[this, elem, path](){
 						//TDOD: make alert
 						if( !QDir( path ).exists() ) return;
-						app::startDetached("fusermount",QStringList()<<"-u"<<path);
+						mf::startDetached("fusermount",QStringList()<<"-u"<<path);
 					});
 					dirM->addAction( dirAction );
 				}
@@ -195,7 +195,7 @@ void MainWindow::reloadBookmarks()
 			m_pBookmarksMenu->addMenu( dirM );
 		}else{
 			QAction* dirM = new QAction(QIcon("://img/folder-remote.png"),elem.name, this);
-			connect(dirM,&QAction::triggered,this,[this,elem](){ app::startDetached("exo-open",QStringList()<<elem.type + "://" + elem.path); });
+			connect(dirM,&QAction::triggered,this,[this,elem](){ mf::startDetached("exo-open",QStringList()<<elem.type + "://" + elem.path); });
 			m_pBookmarksMenu->addAction(dirM);
 		}
 	}
@@ -205,10 +205,10 @@ void MainWindow::drawDirMenu(QMenu *menu, const QString &path)
 {
 	menu->clear();
 		QAction* actionTerm = new QAction(QIcon("://img/terminal.png"),tr("Open in terminal"), this);
-		connect(actionTerm,&QAction::triggered,this,[this,path](){ app::startDetached("x-terminal-emulator", QStringList(), path); });
+		connect(actionTerm,&QAction::triggered,this,[this,path](){ mf::startDetached("x-terminal-emulator", QStringList()<<path); });
 	menu->addAction(actionTerm);
 		QAction* actionDir = new QAction(QIcon("://img/folder.png"),tr("Open in filemanager"), this);
-		connect(actionDir,&QAction::triggered,this,[this,path](){ app::startDetached("xdg-open",QStringList()<<path); });
+		connect(actionDir,&QAction::triggered,this,[this,path](){ mf::startDetached("xdg-open",QStringList()<<path); });
 	menu->addAction(actionDir);
 	menu->addSeparator();
 
@@ -232,7 +232,7 @@ void MainWindow::mount(const QString &type, const QString &remotePath, const QSt
 
 	//qDebug()<<elem.path<<elem.type<<path;
 	if(type == "sftp"){
-		app::startDetached("sshfs",QStringList()<<remotePath<<path);
+		mf::startDetached("sshfs",QStringList()<<remotePath<<path);
 	}
 }
 
@@ -265,12 +265,12 @@ void MainWindow::slot_sshMenuUpdate()
 
 	if( QFile(app::conf.sshConfig).exists() ){
 			QAction* configM = new QAction(QIcon("://img/system.png"),tr("Config"), this);
-			connect(configM,&QAction::triggered,this,[this](){ app::startDetached("xdg-open",QStringList()<<app::conf.sshConfig); });
+			connect(configM,&QAction::triggered,this,[this](){ mf::startDetached("xdg-open",QStringList()<<app::conf.sshConfig); });
 		m_pSSHMenu->addAction(configM);
 	}
 	if( QDir(app::conf.sshConfDir).exists() ){
 			QAction* confiDirgM = new QAction(QIcon("://img/folder.png"),"~/.ssh", this);
-			connect(confiDirgM,&QAction::triggered,this,[this](){ app::startDetached("xdg-open",QStringList()<<app::conf.sshConfDir); });
+			connect(confiDirgM,&QAction::triggered,this,[this](){ mf::startDetached("xdg-open",QStringList()<<app::conf.sshConfDir); });
 		m_pSSHMenu->addAction(confiDirgM);
 	}
 	m_pSSHMenu->addSeparator();
@@ -352,7 +352,7 @@ void MainWindow::slot_sshMenuUpdate()
 			if( !elem.host.isEmpty() ){
 				QAction* actionTerm = new QAction(QIcon("://img/terminal.png"),tr("Open in terminal"), this);
 				connect(actionTerm,&QAction::triggered,this,[this,elem](){
-					app::startDetached("exo-open", QStringList()<<"--working-directory"<<QDir::homePath()<<"--launch"<<"TerminalEmulator"<<"ssh " + elem.host);
+					mf::startDetached("exo-open", QStringList()<<"--working-directory"<<QDir::homePath()<<"--launch"<<"TerminalEmulator"<<"ssh " + elem.host);
 				});
 				menu->addAction(actionTerm);
 			}
@@ -364,7 +364,7 @@ void MainWindow::slot_sshMenuUpdate()
 					path = "sftp://" + elem.hostName + ":" + QString::number(elem.port);
 				}
 				QAction* actionDir = new QAction(QIcon("://img/folder.png"),tr("Open in filemanager"), this);
-				connect(actionDir,&QAction::triggered,this,[this,elem,path](){ app::startDetached("exo-open",QStringList()<<path); });
+				connect(actionDir,&QAction::triggered,this,[this,elem,path](){ mf::startDetached("exo-open",QStringList()<<path); });
 				menu->addAction(actionDir);
 			}
 		m_pSSHMenu->addMenu(menu);
@@ -380,7 +380,7 @@ void MainWindow::slot_GlobalHotkey(const uint8_t mode, const uint16_t key)
 		//case key_type_Tilda: if(mode == key_mode_ctrl) startDetached("exo-open", QStringList()<<"--working-directory"<<QDir::homePath()<<"--launch"<<"TerminalEmulator"); break;
 		case key_type_Tilda:
 			if(mode == key_mode_ctrl){
-				app::startDetached("x-terminal-emulator",QStringList());
+				mf::startDetached("x-terminal-emulator",QStringList());
 			}
 		break;
 	}
@@ -469,7 +469,7 @@ void MainWindow::slot_syncSave()
 		args.append( app::conf.sync.server );
 		args.append( QString( app::conf.sync.workDir + "/" + app::conf.sync.personalDir + "/" ) );
 		args.append( "y" );
-		app::startDetached( "allinone", args );
+		mf::startDetached( "allinone", args );
 	}
 }
 

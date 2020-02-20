@@ -82,20 +82,18 @@ namespace app {
 			if(QString(argv[i]).indexOf("-")==0){
 				if(QString(argv[i]) == "--help" or QString(argv[1]) == "-h"){
 					printf("Usage: %s [OPTIONS]\n"
-							//"  -c <FILE>    config file\n"
+							"  -l <FILE>    log file\n"
 							"  -v    Verbose output\n"
+							"  --version	print current version\n"
 							"\n", argv[0]);
 					ret = false;
 				}
-				//if(QString(argv[i]) == "-c"){
-				//	app::conf.confFile = QString(argv[++i]);
-				//	app::loadSettings();
-				//}
+				if(QString(argv[i]) == "-l") app::conf.logFile = QString(argv[++i]);
 				if(QString(argv[i]) == "-v") app::conf.verbose = true;
-			//}else{
-			//	bool ok = false;
-			//	QString(argv[i]).toInt(&ok,10);
-			//	if(ok) app::conf.port = QString(argv[i]).toInt();
+				if(QString(argv[i]) == "--version"){
+					printf( "%s\n", app::conf.version.toUtf8().data() );
+					ret = false;
+				}
 			}
 		}
 		return ret;
@@ -120,38 +118,4 @@ namespace app {
 		fclose(f);
 	}
 
-	bool startDetached(const QString &cmd, const QStringList &args, const QString &workPath)
-	{
-		QString str = cmd + " " + args.join(" ");
-		auto res = QProcess::startDetached( cmd, args, workPath );
-		app::setLog(1,QString("[EXEC %1]: %2").arg( (res)?"true":"false" ).arg(str));
-		return res;
-	}
-
-}
-
-namespace mf {
-	void removeDir(const QString &path)
-	{
-		if( !QDir( path ).exists() ) return;
-		QDir dir = QDir( path );
-		for(auto elem:dir.entryList(QStringList() << "*",QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot)){
-			if( QDir( path + "/" + elem ).exists() ){
-				mf::removeDir( path + "/" + elem );
-				continue;
-			}
-			QFile::remove( path + "/" + elem );
-		}
-		QDir().rmdir( path );
-	}
-
-	QString getSize(const long val)
-	{
-		QString str;
-		if(val < 1024) str = QString::number(val) + " b";
-		if(val >= 1024 && val < 1024000) str = QString::number(val/1024.0).left(5) + " Kb";
-		if(val >= 1024000 && val < 1024000000) str =  QString::number(val/1048576.0).left(5) + " Mb";
-		if(val >= 1048576000) str =  QString::number(val/1073741824.0).left(5) + " Gb";
-		return str;
-	}
 }

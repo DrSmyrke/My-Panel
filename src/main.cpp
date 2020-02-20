@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	app::conf.version = QString("%1.%2").arg(APP_VER_FIRST).arg(APP_VER_SECOND);
+
 	app::localeName = QLocale::system().name();
 	QTranslator translator(&a);
 	if(translator.load(app::localeName,"://lang/")) a.installTranslator(&translator);

@@ -8,6 +8,7 @@
 #include <QMenu>
 #include <QThread>
 #include "global.h"
+#include "myfunctions.h"
 #include "windows/settings.h"
 #include "windows/execwindow.h"
 #include "windows/bookmarkswindow.h"

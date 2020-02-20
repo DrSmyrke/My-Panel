@@ -6,6 +6,7 @@
 #include <QCompleter>
 #include <QStringListModel>
 #include "global.h"
+#include "myfunctions.h"
 
 class ExecWindow : public QMainWindow
 {

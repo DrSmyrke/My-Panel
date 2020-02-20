@@ -27,7 +27,7 @@ OBJECTS_DIR         = ../build/obj/$${CONFIGURATION}
 MOC_DIR             = ../build/$${CONFIGURATION}
 RCC_DIR             = ../build/rcc
 UI_DIR              = ../build/ui
-DESTDIR             = ../bin/$${TARGET}
+DESTDIR             = ../bin/
 
 win32|win64{
     RC_FILE=  index.rc
@@ -44,7 +44,8 @@ SOURCES += main.cpp\
     windows/execwindow.cpp \
     windows/bookmarkswindow.cpp \
     wget.cpp \
-    dataupdate.cpp
+    dataupdate.cpp \
+    myfunctions.cpp
 
 HEADERS  += mainwindow.h \
     global.h \
@@ -53,9 +54,18 @@ HEADERS  += mainwindow.h \
     windows/execwindow.h \
     windows/bookmarkswindow.h \
     wget.h \
-    dataupdate.h
+    dataupdate.h \
+    myfunctions.h
 
 TRANSLATIONS = lang/ru_RU.ts
 
 RESOURCES += \
     resources.qrc
+
+exists(./gitversion.pri):include(./gitversion.pri)
+exists(./myLibs.pri):include(./myLibs.pri)
+
+# Default rules for deployment.
+qnx: target.path = /tmp/$${TARGET}/bin
+else: unix:!android: target.path = /opt/$${TARGET}/bin
+!isEmpty(target.path): INSTALLS += target

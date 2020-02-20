@@ -187,7 +187,7 @@ void ExecWindow::slot_returnPressed()
 
 	auto text = m_pExecLine->text();
 	if( text.left(1) == "/" ){
-		if( QDir( text ).exists() or QFile( text ).exists() ) app::startDetached("xdg-open",QStringList()<<text);
+		if( QDir( text ).exists() or QFile( text ).exists() ) mf::startDetached("xdg-open",QStringList()<<text);
 		return;
 	}
 
@@ -204,17 +204,17 @@ void ExecWindow::slot_returnPressed()
 
 	if( flagTerm ){
 		if( flagSu ) text = "'pkexec " + text + "'";
-		app::startDetached("x-terminal-emulator",QStringList()<<"-e"<<text);
+		mf::startDetached("x-terminal-emulator",QStringList()<<"-e"<<text);
 	}else{
 		QStringList tmp = text.split(" ");
 		if( flagSu ){
-			bool res = app::startDetached( "pkexec", QStringList()<<"env"<<"DISPLAY=$DISPLAY"<<"XAUTHORITY=$XAUTHORITY"<<tmp );
-			if( !res ) res = app::startDetached("gksu",QStringList()<<tmp);
-			if( !res ) res = app::startDetached("ksudo",QStringList()<<tmp);
+			bool res = mf::startDetached( "pkexec", QStringList()<<"env"<<"DISPLAY=$DISPLAY"<<"XAUTHORITY=$XAUTHORITY"<<tmp );
+			if( !res ) res = mf::startDetached("gksu",QStringList()<<tmp);
+			if( !res ) res = mf::startDetached("ksudo",QStringList()<<tmp);
 		}else{
 			QString cmd = tmp[0];
 			tmp.pop_front();
-			app::startDetached(cmd,QStringList()<<tmp);
+			mf::startDetached(cmd,QStringList()<<tmp);
 		}
 	}
 }

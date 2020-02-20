@@ -69,6 +69,7 @@ struct Config{
 	bool verbose = false;
 	uint8_t logLevel = 3;
 	QString logFile;
+	QString version;
 };
 
 namespace app {
@@ -80,12 +81,6 @@ namespace app {
 	void saveSettings();
 	bool parsArgs(int argc, char *argv[]);
 	void setLog(const uint8_t logLevel, const QString &mess);
-	bool startDetached(const QString &cmd, const QStringList &args = QStringList() , const QString &workPath = QDir::homePath());
-}
-
-namespace mf {
-	void removeDir(const QString &path);
-	QString getSize(const long val);
 }
 
 #endif // GLOBAL_H
