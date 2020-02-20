@@ -195,7 +195,7 @@ void MainWindow::reloadBookmarks()
 			m_pBookmarksMenu->addMenu( dirM );
 		}else{
 			QAction* dirM = new QAction(QIcon("://img/folder-remote.png"),elem.name, this);
-			connect(dirM,&QAction::triggered,this,[this,elem](){ mf::startDetached("exo-open",QStringList()<<elem.type + "://" + elem.path); });
+			connect(dirM,&QAction::triggered,this,[this,elem](){ mf::startDetached("xdg-open",QStringList()<<elem.type + "://" + elem.path); });
 			m_pBookmarksMenu->addAction(dirM);
 		}
 	}
@@ -205,7 +205,7 @@ void MainWindow::drawDirMenu(QMenu *menu, const QString &path)
 {
 	menu->clear();
 		QAction* actionTerm = new QAction(QIcon("://img/terminal.png"),tr("Open in terminal"), this);
-		connect(actionTerm,&QAction::triggered,this,[this,path](){ mf::startDetached("x-terminal-emulator", QStringList()<<path); });
+		connect(actionTerm,&QAction::triggered,this,[this,path](){ mf::startDetached("x-terminal-emulator", QStringList(), path); });
 	menu->addAction(actionTerm);
 		QAction* actionDir = new QAction(QIcon("://img/folder.png"),tr("Open in filemanager"), this);
 		connect(actionDir,&QAction::triggered,this,[this,path](){ mf::startDetached("xdg-open",QStringList()<<path); });
