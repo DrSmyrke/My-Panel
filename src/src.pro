@@ -18,9 +18,11 @@ CONFIG    += link_pkgconfig
 PKGCONFIG += x11
 CONFIG += c++11
 
-build_pass:CONFIG(debug, debug|release) {
+CONFIG(debug, debug|release) {
     unix: TARGET = $$join(TARGET,,,_debug)
     else: TARGET = $$join(TARGET,,,d)
+#    unix: TARGET = $${TARGET}_debug
+#    else: TARGET = $${TARGET}d
 }
 
 OBJECTS_DIR         = ../build/obj/$${CONFIGURATION}
