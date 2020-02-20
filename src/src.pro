@@ -27,7 +27,7 @@ OBJECTS_DIR         = ../build/obj/$${CONFIGURATION}
 MOC_DIR             = ../build/$${CONFIGURATION}
 RCC_DIR             = ../build/rcc
 UI_DIR              = ../build/ui
-DESTDIR             = ../bin/
+DESTDIR             = ../bin
 
 win32|win64{
     RC_FILE=  index.rc
