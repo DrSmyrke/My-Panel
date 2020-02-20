@@ -47,7 +47,8 @@ SOURCES += main.cpp\
     windows/bookmarkswindow.cpp \
     wget.cpp \
     dataupdate.cpp \
-    myfunctions.cpp
+    myfunctions.cpp \
+    windows/auth.cpp
 
 HEADERS  += mainwindow.h \
     global.h \
@@ -57,7 +58,8 @@ HEADERS  += mainwindow.h \
     windows/bookmarkswindow.h \
     wget.h \
     dataupdate.h \
-    myfunctions.h
+    myfunctions.h \
+    windows/auth.h
 
 TRANSLATIONS = lang/ru_RU.ts
 

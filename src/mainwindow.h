@@ -12,6 +12,7 @@
 #include "windows/settings.h"
 #include "windows/execwindow.h"
 #include "windows/bookmarkswindow.h"
+#include "windows/auth.h"
 #include "nativeeventfilter.h"
 #include "dataupdate.h"
 

@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFile>
 #include <QDesktopWidget>
+#include <QProcess>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -28,9 +29,6 @@ MainWindow::MainWindow(QWidget *parent)
 		QAction* settingsM = new QAction(tr("Settings"), this);
 		connect(settingsM,&QAction::triggered,m_pSettings,&Settings::open);
 	m_pMainMenu->addAction(settingsM);
-//		QAction* clearErrM = new QAction(tr("Clear Errors"), this);
-//		connect(clearErrM,&QAction::triggered,m_pTaskListWidget,&TaskListWidget::clear_errors);
-//	m_pMainMenu->addAction(clearErrM);
 	m_pMainMenu->addSeparator();
 	m_pMainMenu->addMenu(m_pSSHMenu);
 	m_pMainMenu->addMenu(m_pBookmarksMenu);
@@ -104,7 +102,11 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(this,&MainWindow::signal_stopThreads,m_pDataUpdate,&DataUpdate::slot_stop);
 	connect(m_pDataUpdate,&DataUpdate::signal_finished,m_pDataUpdate,&DataUpdate::deleteLater);
 
-	m_pDataUpdate->moveToThread(m_pThread);
+	m_pDataUpdate->moveToThread(m_pThread);//	qDebug()<<QApplication::desktop()->screenGeometry();
+	//	qDebug()<<QApplication::desktop()->availableGeometry();
+	//	qDebug()<<QApplication::desktop()->screenCount();
+	//	qDebug()<<QApplication::desktop()->screenNumber();
+	//	qDebug()<<QApplication::desktop()->screenGeometry(1);
 	m_pThread->start();
 }
 
@@ -136,12 +138,6 @@ void MainWindow::getMainSize()
 
 	m_windowSize.setWidth( this->size().width() );
 	m_windowSize.setHeight( this->size().height() );
-
-//	qDebug()<<QApplication::desktop()->screenGeometry();
-//	qDebug()<<QApplication::desktop()->availableGeometry();
-//	qDebug()<<QApplication::desktop()->screenCount();
-//	qDebug()<<QApplication::desktop()->screenNumber();
-//	qDebug()<<QApplication::desktop()->screenGeometry(1);
 }
 
 void MainWindow::panelHide()
@@ -170,28 +166,37 @@ void MainWindow::reloadBookmarks()
 			if( list.find(elem.path) != list.end() ){
 				if( list.at(elem.path) == path ) mountF = true;
 			}
+			if( !mountF ){
+				QProcess proc;
+				proc.start( "gvfs-mount", QStringList()<<"-l" );
+				if( proc.waitForStarted() ){
+					proc.waitForFinished();
+					auto res = proc.readAll();
+					auto str = QString("%1://%2").arg( elem.type ).arg( elem.path );
+					auto str2 = QString("%1 -> %2://").arg( elem.path ).arg( elem.type );
+					mountF = res.contains( str.toUtf8() );
+					if( !mountF ){
+						mountF = res.contains( str2.toUtf8() );
+					}
+				}
+			}
 			QMenu* dirM  = new QMenu(elem.name, this);
 				dirM->setIcon( QIcon("://img/folder-remote.png") );
 				if( !mountF ){
 					QAction* dirAction = new QAction( tr("Mount"), this);
 					connect(dirAction,&QAction::triggered,this,[this, elem, path](){
-						//TDOD: make alert
-						if( elem.mountDir.isEmpty() ) return;
 						mount(elem.type, elem.path, path);
 					});
 					dirM->addAction( dirAction );
 				}else{
 					QAction* dirAction = new QAction( tr("Umount"), this);
 					connect(dirAction,&QAction::triggered,this,[this, elem, path](){
-						//TDOD: make alert
-						if( !QDir( path ).exists() ) return;
 						mf::startDetached("fusermount",QStringList()<<"-u"<<path);
+						auto url = QString("%1://%2").arg( elem.type ).arg( elem.path );
+						mf::startDetached("gvfs-mount",QStringList()<<"-u"<<url);
 					});
 					dirM->addAction( dirAction );
 				}
-			//if( mountF ){
-			//	connect(dirM,&QMenu::triggered,this,[this,elem](){ startDetached("xdg-open",QStringList()<<elem.path); });
-			//}
 			m_pBookmarksMenu->addMenu( dirM );
 		}else{
 			QAction* dirM = new QAction(QIcon("://img/folder-remote.png"),elem.name, this);
@@ -226,13 +231,31 @@ void MainWindow::drawDirMenu(QMenu *menu, const QString &path)
 
 void MainWindow::mount(const QString &type, const QString &remotePath, const QString &path)
 {
-	if( !QDir( path ).exists() ) QDir().mkpath( path );
-	//TDOD: make alert
-	if( !QDir( path ).exists() ) return;
+	if( !path.isEmpty() && !QDir( path ).exists() ) QDir().mkpath( path );
 
-	//qDebug()<<elem.path<<elem.type<<path;
 	if(type == "sftp"){
+		if( !QDir( path ).exists() ) return;
 		mf::startDetached("sshfs",QStringList()<<remotePath<<path);
+	}
+	if(type == "dav" || type == "davs"){
+		AuthWindow* authWin = new AuthWindow( this );
+		authWin->setTarget( remotePath );
+		if( authWin->exec() == QDialog::Accepted ){
+			auto data = authWin->getData();
+			auto url = QString("%1://%2@%3").arg( type ).arg( data.username ).arg( remotePath );
+			url.replace( QString("%1@%1@").arg( data.username ), QString("%1@").arg( data.username ) );
+			QProcess proc;
+			proc.start( "gvfs-mount", QStringList()<<url );
+			if( proc.waitForStarted() ){
+				proc.waitForReadyRead();
+				auto res = proc.readAll();
+				proc.write( data.password.toUtf8() + "\n" );
+				proc.closeWriteChannel();
+				proc.waitForFinished();
+				app::setLog( 3, QString("exec [%1] [%2] return [%3]").arg( proc.program() ).arg( proc.arguments().join( " " ) ).arg( proc.state() ) );
+			}
+		}
+		authWin->deleteLater();
 	}
 }
 
@@ -475,7 +498,6 @@ void MainWindow::slot_syncSave()
 
 void MainWindow::enterEvent(QEvent *event)
 {
-	//Q_UNUSED(event);
 	getMainSize();
 	this->move( app::screen.x() + (app::screen.width()/2)-(m_windowSize.width()/2) , app::screen.y());
 	m_pExecWindow->move( app::screen.x() + (app::screen.width()/2)-(m_pExecWindow->width()/2), this->pos().y() + this->height() + 5);
@@ -486,20 +508,14 @@ void MainWindow::enterEvent(QEvent *event)
 
 void MainWindow::leaveEvent(QEvent *event)
 {
-	//Q_UNUSED(event);
-
 	panelHide();
-
 	QMainWindow::leaveEvent(event);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
-	//Q_UNUSED(event);
-
 	getMainSize();
 	panelHide();
-
 	QMainWindow::resizeEvent(event);
 }
 
