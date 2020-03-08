@@ -10,6 +10,6 @@ if [ $1 ]; then
 fi
 
 cd src
-qmake src.pro
-make
+qmake src.pro || exit 1
+make || exit 1
 cd ..
