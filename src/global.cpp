@@ -39,6 +39,18 @@ namespace app {
 			if( !bm.name.isEmpty() and !bm.type.isEmpty() and !bm.path.isEmpty() ) app::conf.bookmarks.push_back( bm );
 		}
 		settings.endGroup();
+
+
+
+
+		QSettings settingsProxy("MySoft","PROXY_SETTINGS");
+
+		app::conf.proxy.useProxy	= settingsProxy.value( "PROXY/useProxy", app::conf.proxy.useProxy ).toBool();
+		app::conf.proxy.hostName	= settingsProxy.value( "PROXY/hostName", app::conf.proxy.hostName ).toString();
+		app::conf.proxy.port		= settingsProxy.value( "PROXY/port", app::conf.proxy.port ).toInt();
+		app::conf.proxy.user		= settingsProxy.value( "PROXY/user", app::conf.proxy.user ).toString();
+		app::conf.proxy.password	= settingsProxy.value( "PROXY/password", app::conf.proxy.password ).toString();
+		app::conf.proxy.type		= settingsProxy.value( "PROXY/type", app::conf.proxy.type ).toInt();
 	}
 
 	void saveSettings()
@@ -73,6 +85,27 @@ namespace app {
 			settings.setValue("BOOKMARKS/" + QString::number(i),str);
 			i++;
 		}
+
+
+
+
+		QSettings settingsProxy("MySoft","PROXY_SETTINGS");
+		settingsProxy.clear();
+		settingsProxy.setValue( "PROXY/useProxy", app::conf.proxy.useProxy );
+		settingsProxy.setValue( "PROXY/hostName", app::conf.proxy.hostName );
+		settingsProxy.setValue( "PROXY/port", app::conf.proxy.port );
+		settingsProxy.setValue( "PROXY/user", app::conf.proxy.user );
+		settingsProxy.setValue( "PROXY/password", app::conf.proxy.password );
+		settingsProxy.setValue( "PROXY/type", app::conf.proxy.type );
+
+		QStringList list;
+		list.append( "0-DefaultProxy" );
+		list.append( "1-Socks5Proxy" );
+		list.append( "2-NoProxy" );
+		list.append( "3-HttpProxy" );
+		list.append( "4-HttpCachingProxy" );
+		list.append( "4-FtpCachingProxy" );
+		settingsProxy.setValue( "PROXY/typeAvailable", list.join( " | " ) );
 	}
 
 	bool parsArgs(int argc, char *argv[])

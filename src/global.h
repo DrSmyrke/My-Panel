@@ -70,6 +70,15 @@ struct Config{
 	uint8_t logLevel = 3;
 	QString logFile;
 	QString version;
+	struct Proxy
+	{
+		QString hostName	= "";
+		uint16_t port		= 0;
+		QString user		= "";
+		QString password	= "";
+		uint8_t type		= 0;
+		bool useProxy		= false;
+	}proxy;
 };
 
 namespace app {

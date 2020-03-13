@@ -1,1 +1,1 @@
-#define APP_VER_FIRST 1.1
+#define APP_VER_FIRST 1.2

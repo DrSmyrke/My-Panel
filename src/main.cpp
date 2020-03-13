@@ -34,6 +34,24 @@ int main(int argc, char *argv[])
 	app::loadSettings();
 	if( !app::parsArgs(argc, argv) ) return 0;
 
+	if( app::conf.proxy.useProxy ){
+		QNetworkProxy proxy;
+		switch (app::conf.proxy.type) {
+			case 0:		proxy.setType(QNetworkProxy::DefaultProxy);		break;
+			case 1:		proxy.setType(QNetworkProxy::Socks5Proxy);		break;
+			case 2:		proxy.setType(QNetworkProxy::NoProxy);			break;
+			case 3:		proxy.setType(QNetworkProxy::HttpProxy);		break;
+			case 4:		proxy.setType(QNetworkProxy::HttpCachingProxy);	break;
+			case 5:		proxy.setType(QNetworkProxy::FtpCachingProxy);	break;
+			default:	proxy.setType(QNetworkProxy::NoProxy);			break;
+		}
+		proxy.setHostName( app::conf.proxy.hostName );
+		proxy.setPort( app::conf.proxy.port );
+		proxy.setUser( app::conf.proxy.user );
+		proxy.setPassword( app::conf.proxy.password );
+		QNetworkProxy::setApplicationProxy(proxy);
+	}
+
 	MainWindow w;
 	w.show();
     w.run();
