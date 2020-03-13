@@ -5,6 +5,7 @@
 #include <QTranslator>
 #include <QLockFile>
 #include <QMessageBox>
+#include <QNetworkProxy>
 #include "global.h"
 
 int main(int argc, char *argv[])
