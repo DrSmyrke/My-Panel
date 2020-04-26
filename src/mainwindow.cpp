@@ -231,12 +231,12 @@ void MainWindow::drawDirMenu(QMenu *menu, const QString &path)
 
 void MainWindow::mount(const QString &type, const QString &remotePath, const QString &path)
 {
-	if( !path.isEmpty() && !QDir( path ).exists() ) QDir().mkpath( path );
+	//if( !path.isEmpty() && !QDir( path ).exists() ) QDir().mkpath( path );
 
-	if(type == "sftp"){
-		if( !QDir( path ).exists() ) return;
-		mf::startDetached("sshfs",QStringList()<<remotePath<<path);
-	}
+	//if(type == "sftp"){
+	//	if( !QDir( path ).exists() ) return;
+	//	mf::startDetached("sshfs",QStringList()<<remotePath<<path);
+	//}
 	if(type == "dav" || type == "davs"){
 		AuthWindow* authWin = new AuthWindow( this );
 		authWin->setTarget( remotePath );
