@@ -231,12 +231,6 @@ void MainWindow::drawDirMenu(QMenu *menu, const QString &path)
 
 void MainWindow::mount(const QString &type, const QString &remotePath, const QString &path)
 {
-	//if( !path.isEmpty() && !QDir( path ).exists() ) QDir().mkpath( path );
-
-	//if(type == "sftp"){
-	//	if( !QDir( path ).exists() ) return;
-	//	mf::startDetached("sshfs",QStringList()<<remotePath<<path);
-	//}
 	if(type == "dav" || type == "davs"){
 		AuthWindow* authWin = new AuthWindow( this );
 		authWin->setTarget( remotePath );
@@ -256,6 +250,32 @@ void MainWindow::mount(const QString &type, const QString &remotePath, const QSt
 			}
 		}
 		authWin->deleteLater();
+		return;
+	}
+	if( type == "sftp" ){
+		AuthWindow* authWin = new AuthWindow( this );
+		authWin->setTarget( remotePath );
+		if( authWin->exec() == QDialog::Accepted ){
+			if( !path.isEmpty() && !QDir( path ).exists() ) QDir().mkpath( path );
+			auto data = authWin->getData();
+			auto url = QString("%1@%2").arg( data.username ).arg( remotePath );
+			url.replace( QString("%1@%1@").arg( data.username ), QString("%1@").arg( data.username ) );
+			QProcess proc;
+			proc.start( "sshfs", QStringList()<<url<<path<<"-o"<<"password_stdin,auto_unmount" );
+			if( proc.waitForStarted() ){
+				//proc.waitForReadyRead();
+				//auto res = proc.readAll();
+				proc.write( data.password.toUtf8() + "\n" );
+				proc.waitForBytesWritten();
+				//proc.closeWriteChannel();
+				proc.waitForReadyRead();
+				auto res2 = proc.readAll();
+				proc.waitForFinished();
+				app::setLog( 3, QString("exec [%1] [%2] return [%3]").arg( proc.program() ).arg( proc.arguments().join( " " ) ).arg( proc.state() ) );
+			}
+		}
+		authWin->deleteLater();
+		return;
 	}
 }
 
